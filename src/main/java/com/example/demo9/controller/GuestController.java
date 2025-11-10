@@ -81,6 +81,7 @@ public class GuestController {
 		return "redirect:/message/guestInputOk";
 	}
 
+
     // 방명록 게시글 삭제처리
 	@GetMapping("/guestDelete")
 	public String guestDeleteGet(Long id) {
