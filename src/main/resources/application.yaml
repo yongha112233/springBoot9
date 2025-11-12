@@ -22,6 +22,8 @@ spring:
     username: root
     password: 1234
 
+
+
   # JPA Setting
   jpa:
     open-in-view: true
@@ -41,6 +43,13 @@ spring:
       name: admin@green.com
       password: 1234
 
+  # File Upload MaxSize Setting
+  servlet:
+    multipart:
+      enabled: true
+      maxFileSize: 10MB
+      maxRequestSize: 30MB
+
 # Log information Setting
 logging:
   level:
@@ -49,4 +58,5 @@ logging:
         type:
           descriptor:
             sql: trace
+
 
