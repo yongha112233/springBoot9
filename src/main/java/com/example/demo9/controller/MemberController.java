@@ -147,6 +147,7 @@ public class MemberController {
     @GetMapping("/memberUpdate")
     public String memberUpdateGet(Model model, Authentication authentication) {
         String email = authentication.getName();
+
         Optional<Member> opMember = memberRepository.findByEmail(email);
         model.addAttribute("member", opMember);
         return "member/memberUpdate";
