@@ -64,6 +64,7 @@ public class Board {
 
     // 댓글과의 연관관계설정
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "board")
+//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "board", cascade = CascadeType.REMOVE)
     private List<BoardReply> boardReplies = new ArrayList<>();
 
 

@@ -5,12 +5,15 @@
       layout:decorate="~{layouts/basicLayout}">
 
 <!-- CSRF 설정 -->
+<!--
 <meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+-->
 
-<th:block layout:fragment="script">
+    <th:block layout:fragment="script">
   <script src="/ckeditor/ckeditor.js"></script>
   <script th:inline="javascript">
+      <!--
       var token = $("meta[name='_csrf']").attr("content");
       var header = $("meta[name='_csrf_header']").attr("content");
       $(function() {
@@ -18,6 +21,7 @@
             xhr.setRequestHeader(header, token);
         });
       });
+      -->
   </script>
 </th:block>
 

@@ -27,6 +27,7 @@ public class BoardReply {
 
     // 원본글의 키를 FK로 설정
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     @JoinColumn(name = "board_id", referencedColumnName = "board_id")
     private Board board;
 
@@ -34,6 +35,7 @@ public class BoardReply {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     @JoinColumn(name = "email", referencedColumnName = "email")
     private Member member;
 
