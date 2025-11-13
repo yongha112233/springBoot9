@@ -2,6 +2,7 @@ package com.example.demo9.controller;
 
 import com.example.demo9.dto.MemberDto;
 import com.example.demo9.entity.Member;
+import com.example.demo9.repository.MemberRepository;
 import com.example.demo9.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,11 +16,10 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -28,6 +28,7 @@ import java.util.Optional;
 public class MemberController {
 
     private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -116,5 +117,42 @@ public class MemberController {
     public String memberMainGet() {
         return "member/memberMain";
     }
+
+    @GetMapping("/memberList")
+    public String memberListGet(Model model) {
+        List<Member> memberList = memberRepository.findAll();
+        model.addAttribute("memberList", memberList);
+        return "member/memberList";
+    }
+
+    @GetMapping("/memberPwdCheck/{flag}")
+    public String memberPwdCheckGet(Model model, @PathVariable String flag) {
+        model.addAttribute("userCsrf", true);
+        model.addAttribute("flag", flag);
+        return "member/memberPwdCheck";
+    }
+
+    @ResponseBody
+    @PostMapping("/memberPwdCheck")
+    public String memberPwdCheckPost(Authentication authentication , String pwd) {
+        String email = authentication.getName();
+        Optional<Member> opMember = memberRepository.findByEmail(email);
+
+        if(passwordEncoder.matches(pwd, opMember.get().getPassword())){
+            return "1";
+        }
+        return "0";
+    }
+
+    @GetMapping("/memberUpdate")
+    public String memberUpdateGet(Model model, Authentication authentication) {
+        String email = authentication.getName();
+        Optional<Member> opMember = memberRepository.findByEmail(email);
+        model.addAttribute("member", opMember);
+        return "member/memberUpdate";
+    }
+
+
+
 
 }
