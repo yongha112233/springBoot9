@@ -1,6 +1,7 @@
 package com.example.demo9.common;
 
 import com.example.demo9.entity.Board;
+import com.example.demo9.entity.Member;
 import lombok.Data;
 
 import java.util.List;
@@ -28,5 +29,8 @@ public class PageVO {
 
     private List<Board> boardList;
 
+    private List<Member> MemberList;
+
     private boolean isOwner;    // 본인 인증여부를 확인하기위한 변수
+
 }

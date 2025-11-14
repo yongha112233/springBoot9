@@ -1,5 +1,8 @@
 package com.example.demo9.controller;
 
+import com.example.demo9.common.PageVO;
+import com.example.demo9.common.Pagination;
+import com.example.demo9.constant.UserDel;
 import com.example.demo9.dto.MemberDto;
 import com.example.demo9.entity.Member;
 import com.example.demo9.repository.MemberRepository;
@@ -19,6 +22,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +33,7 @@ public class MemberController {
 
     private final MemberService memberService;
     private final MemberRepository memberRepository;
+    private final Pagination pagination;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -70,26 +75,32 @@ public class MemberController {
         return "redirect:/member/memberMain";
     }
 
+//    @GetMapping("/login/error")
+//    public  String loginErrorGet(RedirectAttributes rttr) {
+//        rttr.addFlashAttribute("loginErrorMsg", "아이디 또는 비밀번호가 일치하지 않습니다.");
+//        return "redirect:/member/memberLogin";
+//    }
+
     @GetMapping("/login/error")
-    public  String loginErrorGet(RedirectAttributes rttr) {
-        rttr.addFlashAttribute("loginErrorMsg", "아이디 또는 비밀번호가 일치하지 않습니다.");
-        return "redirect:/member/memberLogin";
+    public  String loginErrorGet() {
+        return "redirect:/message/memberDelOk";
     }
 
     @GetMapping("/memberLogout")
     public String memberLogoutGet(Authentication authentication,
                                   HttpServletRequest request,
                                   HttpServletResponse response,
-                                  HttpSession session,
-                                  RedirectAttributes rttr) {
+                                  //RedirectAttributes rttr,
+                                  HttpSession session) {
+        String name = session.getAttribute("sName").toString();
         if(authentication != null) {
-            String name = session.getAttribute("sName").toString();
-            rttr.addFlashAttribute("message", name + "님 로그아웃 되었습니다.");
+            //rttr.addFlashAttribute("message", name + "님 로그아웃 되었습니다.");
             session.invalidate();
             new SecurityContextLogoutHandler().logout(request, response, authentication);
         }
-
-        return "redirect:/member/memberLogin";
+//        return "redirect:/member/memberLogin";
+        return "redirect:/message/memberLogout?name="+ URLEncoder.encode(name);
+//        return "redirect:/message/memberLogout?name="+name;
     }
 
     @PostMapping("/memberJoin")
@@ -119,14 +130,16 @@ public class MemberController {
     }
 
     @GetMapping("/memberList")
-    public String memberListGet(Model model) {
-        List<Member> memberList = memberRepository.findAll();
-        model.addAttribute("memberList", memberList);
+    public String memberListGet(Model model, PageVO pageVO) {
+        pageVO.setSection("member");
+        pageVO = pagination.pagination(pageVO);
+        model.addAttribute("pageVO", pageVO);
         return "member/memberList";
     }
 
     @GetMapping("/memberPwdCheck/{flag}")
     public String memberPwdCheckGet(Model model, @PathVariable String flag) {
+        // CSRF Token  처리(AJax에서 post처리시)
         model.addAttribute("userCsrf", true);
         model.addAttribute("flag", flag);
         return "member/memberPwdCheck";
@@ -134,24 +147,60 @@ public class MemberController {
 
     @ResponseBody
     @PostMapping("/memberPwdCheck")
-    public String memberPwdCheckPost(Authentication authentication , String pwd) {
-        String email = authentication.getName();
-        Optional<Member> opMember = memberRepository.findByEmail(email);
+    public int memberPwdCheckPost(String pwd, String email) {
+        Optional<Member> member = memberRepository.findByEmail(email);
+        if(passwordEncoder.matches(pwd, member.get().getPassword())) return 1;
+        else return 0;
+    }
 
-        if(passwordEncoder.matches(pwd, opMember.get().getPassword())){
-            return "1";
-        }
-        return "0";
+    @PostMapping("/memberPwdChange")
+    public String memberPwdChangePost(String email,
+                                      @RequestParam(name="newPwd", defaultValue = "", required = false) String pwd) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.setPassword(passwordEncoder.encode(pwd));
+        memberRepository.save(member);
+        return "redirect:/message/memberPwdChangeOk";
     }
 
     @GetMapping("/memberUpdate")
-    public String memberUpdateGet(Model model, Authentication authentication) {
-        String email = authentication.getName();
-
-        Optional<Member> opMember = memberRepository.findByEmail(email);
-        model.addAttribute("member", opMember);
+    public String memberUpdateGet(Model model, String email, Authentication authentication) {
+        Optional<Member> opMember = memberRepository.findByEmail(authentication.getName());
+        MemberDto dto = MemberDto.entityToDto(opMember);
+//        model.addAttribute("memberDto", dto);
+        model.addAttribute("dto", dto);
         return "member/memberUpdate";
     }
+
+    @PostMapping("/memberUpdate")
+    public String memberUpdatePost(String name, String address,
+                                   Authentication authentication,
+//                                   @Valid MemberDto memberDto,
+                                   @Valid @ModelAttribute("dto") MemberDto dto,  //html 문서에서 'memberDto' 가 아닌 'dto'로 받을경우
+                                   BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) {
+            return "member/memberUpdate";
+        }
+
+        String email = authentication.getName();
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.setName(name);
+        member.setAddress(address.trim());
+        memberRepository.save(member);
+        return "redirect:/message/memberUpdateOk?email="+email;
+    }
+
+    @GetMapping("/memberDelete")
+    public String memberDeleteGet(Authentication authentication, HttpSession session) {
+        String email = authentication.getName();
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.setUserDel(UserDel.OK);
+        memberRepository.save(member);
+        session.setAttribute("sName", "회원 탈퇴 되셨습니다. ");
+        return "redirect:/member/memberLogout";
+    }
+
+
+
 
 
 
