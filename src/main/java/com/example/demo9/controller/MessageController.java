@@ -73,6 +73,18 @@ public class MessageController {
             model.addAttribute("message", "탈퇴하신 회원입니다. 같은 아이디로 재가입할수 없습니다.");
             model.addAttribute("url", "/member/memberLogin");
         }
+        else if(msgFlag.equals("fileUploadOk")) {
+            model.addAttribute("message", "파일 업로드 성공");
+            model.addAttribute("url", "/study/upload/uploadForm");
+        }
+        else if(msgFlag.equals("fileUploadNo")) {
+            model.addAttribute("message", "파일 업로드 실패");
+            model.addAttribute("url", "/study/upload/uploadForm");
+        }
+        else if(msgFlag.equals("uploadEmpty")) {
+            model.addAttribute("message", "파일 업로드할 파일을 선택하세요");
+            model.addAttribute("url", "/study/upload/uploadForm");
+        }
 
 		return "include/message";
 	}
